@@ -4,13 +4,28 @@
 
 ## 安装
 
-需要 CotEditor 7、Python 3.11 或更新版本，以及支持 `lsp` 命令的 Surge Mac 6.10.0 或更新版本。Surge 必须安装在 `/Applications/Surge.app`。
+需要 CotEditor 7 或更新版本，安装位置必须是 `/Applications/CotEditor.app`。诊断功能还需要支持 `lsp` 命令的 Surge Mac 6.10.0 或更新版本，安装位置必须是 `/Applications/Surge.app`。仅使用语法高亮和大纲时不需要 Surge。
+
+推荐通过 Homebrew 安装：
+
+```sh
+brew install --cask AprilNEA/tap/coteditor-surge
+```
+
+Homebrew 会安装所需的 Python，并管理语法包和脚本的升级、卸载。CotEditor 和 Surge 由你单独安装。
+
+如果已经手动安装，先把以下两个目录移到备份位置，再执行 Homebrew 安装命令。安装器会拒绝覆盖已有目录，也不会自动接管手动安装的文件。
+
+- `~/Library/Containers/com.coteditor.CotEditor/Data/Library/Application Support/CotEditor/Syntaxes/Surge.cotsyntax`
+- `~/Library/Application Scripts/com.coteditor.CotEditor/Surge`
+
+也可以下载 [Release](https://github.com/AprilNEA/coteditor-surge/releases) 的源码包，使用 Python 3.11 或更新版本手动安装：
 
 ```sh
 python3 install.py
 ```
 
-安装程序使用当前 Python 的绝对路径，避免 CotEditor 与终端的 `PATH` 不同。保留这个 Python 安装。若已有同名语法或脚本目录，安装程序会停止，不覆盖已有文件。
+手动安装会记录当前 Python 的绝对路径，避免 CotEditor 与终端的 `PATH` 不同。保留这个 Python 安装。
 
 若 CotEditor 已经打开，在「Settings → Format」列表下方的菜单中执行「Reload All Syntaxes」，加载新语法。
 
@@ -47,4 +62,13 @@ swift tests/check-syntax.swift .
 
 ## 卸载
 
-从 CotEditor「Settings → Format」删除「Surge」语法，再从「Script → Open Scripts Folder」移走 `Surge` 文件夹。自动保存检查脚本随文件夹一起移除。
+Homebrew 安装使用以下命令升级或卸载：
+
+```sh
+brew upgrade --cask coteditor-surge
+brew uninstall --cask coteditor-surge
+```
+
+卸载会把这套语法包和脚本移到废纸篓。升级会替换这两个目录，修改其中的文件前先保留副本。Surge 配置文件不受影响。
+
+手动安装的版本，从 CotEditor「Settings → Format」删除「Surge」语法，再从「Script → Open Scripts Folder」移走 `Surge` 文件夹。自动保存检查脚本随文件夹一起移除。

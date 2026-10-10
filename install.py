@@ -9,6 +9,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+COTEDITOR_APP = Path("/Applications/CotEditor.app")
 
 
 def applescript_string(value):
@@ -16,6 +17,20 @@ def applescript_string(value):
 
 
 def install(home, python):
+    if not COTEDITOR_APP.is_dir():
+        raise FileNotFoundError(
+            f"Install CotEditor 7 or later at {COTEDITOR_APP} before installing."
+        )
+    info_path = COTEDITOR_APP / "Contents/Info.plist"
+    with info_path.open("rb") as info_file:
+        version = plistlib.load(info_file).get("CFBundleShortVersionString")
+    if not isinstance(version, str) or not version.split(".", 1)[0].isdecimal():
+        raise ValueError(f"Cannot determine the CotEditor version from {info_path}.")
+    if int(version.split(".", 1)[0]) < 7:
+        raise ValueError(
+            f"CotEditor 7 or later is required; found {version} at {COTEDITOR_APP}."
+        )
+
     syntax = (
         home
         / "Library/Containers/com.coteditor.CotEditor/Data/Library/Application Support"
@@ -23,7 +38,7 @@ def install(home, python):
     )
     scripts = home / "Library/Application Scripts/com.coteditor.CotEditor/Surge"
     for destination in (syntax, scripts):
-        if destination.exists():
+        if destination.exists() or destination.is_symlink():
             raise FileExistsError(
                 f"Installation stopped: {destination} already exists. "
                 "Move the existing Surge installation aside before installing again."
@@ -52,15 +67,25 @@ def install(home, python):
         info = {
             "CFBundleIdentifier": "com.aprilnea.coteditor-surge.check-on-save",
             "CFBundleName": "Surge Check on Save",
-            "CFBundleShortVersionString": "1.0.0",
+            "CFBundleShortVersionString": "0.1.0",
             "CotEditorHandlers": ["document saved"],
         }
         info_path.write_bytes(plistlib.dumps(info))
 
-        syntax.parent.mkdir(parents=True, exist_ok=True)
-        scripts.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(ROOT / "Surge.cotsyntax", syntax)
-        shutil.copytree(staging, scripts)
+        created = []
+        try:
+            for source, destination in (
+                (ROOT / "Surge.cotsyntax", syntax),
+                (staging, scripts),
+            ):
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.mkdir()
+                created.append(destination)
+                shutil.copytree(source, destination, dirs_exist_ok=True)
+        except Exception:
+            for destination in reversed(created):
+                shutil.rmtree(destination)
+            raise
     return syntax, scripts
 
 
@@ -70,5 +95,5 @@ if __name__ == "__main__":
             print(f"Installed: {installed}")
         print("In Settings > Format, use Reload All Syntaxes from the actions menu.")
         print("Select the Surge syntax, then run Script > Surge > Check Surge.")
-    except (OSError, subprocess.CalledProcessError) as error:
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
         sys.exit(str(error))
