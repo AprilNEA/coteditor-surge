@@ -58,13 +58,13 @@ GitHub 自动生成的源码包不包含可执行文件。源码构建方法见�
 
 构建脚本分别编译 `arm64` 和 `x86_64`，合并为通用可执行文件，再生成 `dist/coteditor-surge-<版本>-local.tar.gz`。最低系统版本是 macOS 15。GitHub Actions 在两种架构上执行检查并上传本地测试包。
 
-本地测试包使用 ad hoc 签名，不能作为 Homebrew 发布包分发。正式发布时，指定 Developer ID Application 签名证书、已经配置的 `notarytool` Keychain profile 和存放凭据的钥匙串路径：
+本地测试包使用 ad hoc 签名，不能作为 Homebrew 发布包分发。正式发布时，指定 Developer ID Application 签名证书、已经配置的 `notarytool` Keychain profile 和存放凭据的钥匙串路径。钥匙串必须已解锁，并位于当前用户的钥匙串搜索列表中：
 
 ```sh
 /bin/sh scripts/build-release.sh 'Developer ID Application: Your Name (TEAMID)' 'notary-profile' /path/to/signing.keychain-db
 ```
 
-构建脚本使用 Hardened Runtime 和安全时间戳签名，再提交 Apple 公证。只有公证状态为 `Accepted` 时，才生成不带 `-local` 后缀的正式发布包并输出 SHA-256。把正式发布包上传到 Release，并将 SHA-256 填入 Cask。命令行可执行文件不支持附加公证票据，首次启动需要联网验证。
+构建脚本使用 Hardened Runtime 和安全时间戳签名，再提交 Apple 公证。只有公证状态为 `Accepted` 且在线票据验证通过时，才生成不带 `-local` 后缀的正式发布包并输出 SHA-256。提交用的 ZIP 和公证日志保存在 `dist` 中，便于排查验证失败。把正式发布包上传到 Release，并将 SHA-256 填入 Cask。命令行可执行文件不支持附加公证票据，首次启动需要联网验证。
 
 真实诊断集成测试需要本机 Surge；缺少 Surge 时跳过这部分测试。测试只使用合成配置，不读取个人配置。
 

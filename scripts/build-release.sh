@@ -36,13 +36,13 @@ else
 fi
 /usr/bin/codesign --verify --strict --all-architectures "$staging/$package/bin/check-surge"
 xcrun lipo "$staging/$package/bin/check-surge" -verify_arch arm64 x86_64
-"$staging/$package/bin/check-surge" --help
 cp -R Surge.cotsyntax examples "$staging/$package/"
 cp install.sh README.md "$staging/$package/"
 cp scripts/check-surge.sh scripts/check-on-save.applescript scripts/install-lib.sh "$staging/$package/scripts/"
 if [ "$#" -eq 3 ]; then
-    /usr/bin/ditto -c -k --keepParent "$staging/$package" "$staging/notarize.zip"
-    xcrun notarytool submit "$staging/notarize.zip" --keychain-profile "$2" --keychain "$3" --wait \
+    notarization_archive="dist/$package-notarization.zip"
+    /usr/bin/ditto -c -k --keepParent "$staging/$package" "$notarization_archive"
+    xcrun notarytool submit "$notarization_archive" --keychain-profile "$2" --keychain "$3" --wait \
         --output-format json >"dist/$package-notarization.json"
     cat "dist/$package-notarization.json"
     submission_id=$(/usr/bin/plutil -extract id raw "dist/$package-notarization.json")
@@ -51,8 +51,11 @@ if [ "$#" -eq 3 ]; then
         printf 'Apple did not accept this package for notarization.\n' >&2
         exit 1
     fi
-    /usr/bin/codesign --verify --strict --all-architectures --check-notarization \
-        -R='notarized' "$staging/$package/bin/check-surge"
+    for arch in arm64 x86_64; do
+        /usr/bin/codesign --verify --strict --architecture "$arch" --check-notarization \
+            -R='notarized' "$staging/$package/bin/check-surge"
+    done
 fi
+"$staging/$package/bin/check-surge" --help
 COPYFILE_DISABLE=1 tar -czf "dist/$package$suffix.tar.gz" -C "$staging" "$package"
 /usr/bin/shasum -a 256 "dist/$package$suffix.tar.gz"
