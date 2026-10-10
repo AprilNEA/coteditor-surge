@@ -1,0 +1,20 @@
+[
+  {
+    "pattern": "^[ \\t]*\\[([^\\]\\r\\n]+)\\]",
+    "template": "$1",
+    "kind": "container",
+    "description": "Profile and module sections"
+  },
+  {
+    "pattern": "^[ \\t]*#!name[ \\t]*=[ \\t]*(.+)$",
+    "template": "$1",
+    "kind": "title",
+    "description": "Module title"
+  },
+  {
+    "pattern": "^[ \\t]*#!include[ \\t]+(.+)$",
+    "template": "Include: $1",
+    "kind": "mark",
+    "description": "Detached profile references"
+  }
+]

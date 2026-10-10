@@ -1,0 +1,9 @@
+#!name=CotEditor Surge Example
+#!desc=Demonstrate module headers, sections, and arguments.
+#!arguments=hostname:example.com
+
+[Rule]
+DOMAIN,{{{hostname}}},DIRECT
+
+[MITM]
+hostname = %APPEND% {{{hostname}}}

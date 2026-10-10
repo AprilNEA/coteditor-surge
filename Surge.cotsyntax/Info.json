@@ -1,0 +1,11 @@
+{
+  "fileMap": {
+    "extensions": ["sgconf", "dconf", "sgmodule", "sgruleset"],
+    "filenames": ["Surge.conf"]
+  },
+  "kind": "code",
+  "metadata": {
+    "lastModified": "2026-10-10",
+    "version": "1.0.0"
+  }
+}

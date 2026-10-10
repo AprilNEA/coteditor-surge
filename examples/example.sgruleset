@@ -1,0 +1,6 @@
+# Rule sets contain conditions without a policy column.
+DOMAIN,example.com
+DOMAIN-SUFFIX,example.org
+IP-CIDR,198.51.100.0/24,no-resolve
+; Documentation networks only.
+// These entries do not contact any host.

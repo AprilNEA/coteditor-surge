@@ -1,0 +1,42 @@
+[
+  {
+    "category": "keywords",
+    "source": "AND,((DOMAIN-SUFFIX,example.com),(DEST-PORT,443)),DIRECT\nFINAL,REJECT\nDOMAIN-SET,https://example.com/domains.txt,DIRECT",
+    "matches": ["AND", "DOMAIN-SUFFIX", "DEST-PORT", "FINAL", "DOMAIN-SET"]
+  },
+  {
+    "category": "keywords",
+    "source": "# DOMAIN,example.com\nname = DOMAIN-SUFFIX\nDOMAIN-UNKNOWN,example.com,DIRECT",
+    "matches": []
+  },
+  {
+    "category": "commands",
+    "source": "#!name=Example\n#!include proxies.dconf\nDOMAIN,example.com,DIRECT #!MACOS-ONLY\n#!REQUIREMENT SYSTEM=='macOS'\n//!REQUIREMENT CORE_VERSION>=22",
+    "matches": ["#!name", "#!include", "#!MACOS-ONLY", "#!REQUIREMENT", "//!REQUIREMENT"]
+  },
+  {
+    "category": "types",
+    "source": "[General]\n[Proxy Group]\n[WireGuard Home]\n[Ruleset Local]\nvalue = [not a section]\nOutbound = smart, DIRECT, Example",
+    "matches": ["[General]", "[Proxy Group]", "[WireGuard Home]", "[Ruleset Local]", " smart"]
+  },
+  {
+    "category": "attributes",
+    "source": "dns-server = system\nExample = http, proxy.example.com, 8080, username=demo\nIP-CIDR,192.0.2.0/24,DIRECT,no-resolve",
+    "matches": ["dns-server", "Example", "username", "no-resolve"]
+  },
+  {
+    "category": "variables",
+    "source": "DOMAIN,{{{hostname}}},DIRECT\n^https://example.com/(.*) https://other.example.com/$1 302",
+    "matches": ["{{{hostname}}}", "$1"]
+  },
+  {
+    "category": "values",
+    "source": "FINAL,REJECT-DROP\nipv6 = true # enabled\nExample = http, direct.example.com, 8080\nDOMAIN,example.com,DIRECTOR",
+    "matches": ["REJECT-DROP", " true"]
+  },
+  {
+    "category": "comments",
+    "source": "#comment\n  ;comment\n\t//comment\n#!name=Module\n//!REQUIREMENT SYSTEM=='macOS'\nurl = https://example.com/path#fragment\npassword = \"quoted # value // value; value\"",
+    "matches": ["#comment", "  ;comment", "\t//comment"]
+  }
+]

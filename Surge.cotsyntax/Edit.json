@@ -1,0 +1,13 @@
+{
+  "comment": {
+    "blocks": [],
+    "inlines": [
+      {"begin": "# "},
+      {"begin": ";"},
+      {"begin": "// "}
+    ]
+  },
+  "stringDelimiters": [
+    {"begin": "\"", "end": "\"", "escapeCharacter": "\\"}
+  ]
+}
