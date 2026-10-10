@@ -6,7 +6,7 @@ using terms from application "CotEditor"
         end tell
         set documentPath to POSIX path of documentFile
         try
-            set reportText to do shell script (quoted form of __PYTHON__ & " " & quoted form of __CHECKER__ & " --saved " & quoted form of documentPath & " 2>&1")
+            set reportText to do shell script (quoted form of (my checkerPath) & " --saved " & quoted form of documentPath & " 2>&1")
         on error errorText
             set reportText to errorText
         end try

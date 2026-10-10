@@ -1,5 +1,4 @@
 { pkgs, ... }:
 {
-  packages = [ pkgs.ruff pkgs.nodejs ];
-  languages.python.enable = true;
+  packages = [ pkgs.shellcheck pkgs.shfmt pkgs.actionlint pkgs.nodejs ];
 }

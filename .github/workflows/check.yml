@@ -1,0 +1,26 @@
+name: Check and build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.1
+      - run: nix profile add github:cachix/devenv/v2.4.0
+      - run: /bin/sh scripts/check.sh
+      - run: /bin/sh scripts/build-release.sh
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: coteditor-surge-local-${{ matrix.os }}
+          path: dist/*-local.tar.gz
+          if-no-files-found: error

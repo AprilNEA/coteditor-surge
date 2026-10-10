@@ -12,20 +12,20 @@
 brew install --cask AprilNEA/tap/coteditor-surge
 ```
 
-Homebrew 会安装所需的 Python，并管理语法包和脚本的升级、卸载。CotEditor 和 Surge 由你单独安装。
+发布包包含支持 Apple Silicon 和 Intel 的 Swift 可执行文件，只使用 macOS 系统库。安装和运行都不需要 Python 或 Swift 编译器。Homebrew 管理语法包和脚本的升级、卸载，CotEditor 和 Surge 由你单独安装。
 
 如果已经手动安装，先把以下两个目录移到备份位置，再执行 Homebrew 安装命令。安装器会拒绝覆盖已有目录，也不会自动接管手动安装的文件。
 
 - `~/Library/Containers/com.coteditor.CotEditor/Data/Library/Application Support/CotEditor/Syntaxes/Surge.cotsyntax`
 - `~/Library/Application Scripts/com.coteditor.CotEditor/Surge`
 
-也可以下载 [Release](https://github.com/AprilNEA/coteditor-surge/releases) 的源码包，使用 Python 3.11 或更新版本手动安装：
+也可以从 [Release](https://github.com/AprilNEA/coteditor-surge/releases) 下载 `coteditor-surge-<版本>.tar.gz`，解压后进入发布包目录，使用系统 shell 安装：
 
 ```sh
-python3 install.py
+/bin/sh install.sh
 ```
 
-手动安装会记录当前 Python 的绝对路径，避免 CotEditor 与终端的 `PATH` 不同。保留这个 Python 安装。
+GitHub 自动生成的源码包不包含可执行文件。源码构建方法见「开发」。
 
 若 CotEditor 已经打开，在「Settings → Format」列表下方的菜单中执行「Reload All Syntaxes」，加载新语法。
 
@@ -37,10 +37,10 @@ python3 install.py
 
 显式保存使用「Surge」语法的文档时，会自动检查磁盘上的 UTF-8 文件。控制台显示文件名、行号、列号、诊断级别和消息；行号、列号从 1 开始，列号使用 LSP 的 UTF-16 单位。检查不会改写文档、切换 Surge 配置或连接 Controller。
 
-检查脚本根据扩展名、模块头和规则行选择语言。命令行可以指定语言，例如：
+诊断器根据扩展名、模块头和规则行选择语言。在解压后的发布包目录中，也可以通过命令行指定语言：
 
 ```sh
-python3 scripts/check-surge.py --saved --language surge-ruleset examples/example.sgruleset
+./bin/check-surge --saved --language surge-ruleset examples/example.sgruleset
 ```
 
 「Surge reported no diagnostics」仅表示服务端未返回诊断，不保证配置中的所有问题都已被检查。其他文档的未保存修改不会参与本次检查，外部规则集也不会自动完整检查。独立 `.dconf` 缺少主配置上下文，`DOMAIN-SET` 纯域名列表不属于规则集检查范围。
@@ -49,16 +49,24 @@ python3 scripts/check-surge.py --saved --language surge-ruleset examples/example
 
 ## 开发
 
+开发需要 Xcode Command Line Tools（Swift 6 或更新版本）和 devenv。在普通终端执行以下命令；检查脚本通过 devenv 调用 shell 工具，Swift 编译器和格式检查使用 Xcode 工具链及对应 SDK：
+
 ```sh
-devenv shell
-ruff check .
-ruff format --check .
-python -m unittest discover -s tests -v
-xcrun swift-format lint --strict tests/check-syntax.swift
-swift tests/check-syntax.swift .
+/bin/sh scripts/check.sh
+/bin/sh scripts/build-release.sh
 ```
 
-集成测试需要本机 Surge。测试只使用合成配置，不读取个人配置。
+构建脚本分别编译 `arm64` 和 `x86_64`，合并为通用可执行文件，再生成 `dist/coteditor-surge-<版本>-local.tar.gz`。最低系统版本是 macOS 15。GitHub Actions 在两种架构上执行检查并上传本地测试包。
+
+本地测试包使用 ad hoc 签名，不能作为 Homebrew 发布包分发。正式发布时，指定 Developer ID Application 签名证书、已经配置的 `notarytool` Keychain profile 和存放凭据的钥匙串路径：
+
+```sh
+/bin/sh scripts/build-release.sh 'Developer ID Application: Your Name (TEAMID)' 'notary-profile' /path/to/signing.keychain-db
+```
+
+构建脚本使用 Hardened Runtime 和安全时间戳签名，再提交 Apple 公证。只有公证状态为 `Accepted` 时，才生成不带 `-local` 后缀的正式发布包并输出 SHA-256。把正式发布包上传到 Release，并将 SHA-256 填入 Cask。命令行可执行文件不支持附加公证票据，首次启动需要联网验证。
+
+真实诊断集成测试需要本机 Surge；缺少 Surge 时跳过这部分测试。测试只使用合成配置，不读取个人配置。
 
 ## 卸载
 
