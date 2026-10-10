@@ -8,16 +8,30 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: cachix/install-nix-action@v31.11.1
+      - run: nix profile add github:cachix/devenv/v2.4.0
+      - run: |
+          xcrun swift-format lint --strict --recursive Package.swift Sources tests
+          devenv shell -- shellcheck install.sh scripts/*.sh tests/*.sh
+          devenv shell -- shfmt -d -i 4 -ci install.sh scripts/*.sh tests/*.sh
+          devenv shell -- actionlint
+
   check:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-15, macos-15-intel]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: cachix/install-nix-action@v31.11.1
-      - run: nix profile add github:cachix/devenv/v2.4.0
-      - run: /bin/sh scripts/check.sh
+      - run: |
+          xcrun swift test
+          xcrun swift tests/check-syntax.swift .
+          /bin/sh tests/test-install.sh
       - run: /bin/sh scripts/build-release.sh
       - uses: actions/upload-artifact@v7.0.2
         with:
